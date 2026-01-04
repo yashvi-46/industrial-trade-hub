@@ -19,6 +19,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import IndustryScroll from "@/components/marketplace/IndustryScroll";
+import RequestsPanel from "@/components/marketplace/RequestsPanel";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -182,6 +184,11 @@ const Dashboard = () => {
           ))}
         </div>
 
+        {/* Industry Marketplace Scroll */}
+        <div className="mb-8">
+          <IndustryScroll />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Market Rates */}
           <Card className="lg:col-span-2 border-border shadow-card">
@@ -236,41 +243,8 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Activity */}
-          <Card className="border-border shadow-card">
-            <CardHeader className="pb-4">
-              <CardTitle className="font-display text-lg flex items-center gap-2">
-                <Bell className="w-5 h-5 text-primary" />
-                Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex gap-3">
-                    <div
-                      className={`w-2 h-2 rounded-full mt-2 ${
-                        activity.type === "inquiry"
-                          ? "bg-accent"
-                          : activity.type === "price"
-                          ? "bg-primary"
-                          : "bg-green-500"
-                      }`}
-                    />
-                    <div>
-                      <p className="text-sm text-foreground">{activity.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Button variant="ghost" className="w-full mt-4 text-primary">
-                View All Activity
-                <ArrowUpRight className="w-4 h-4" />
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Purchase Requests Panel */}
+          <RequestsPanel />
         </div>
 
         {/* Verified Badge Section */}
