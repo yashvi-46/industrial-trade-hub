@@ -120,7 +120,7 @@ const Index = () => {
               Why Choose ChemTradeHub?
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Built for industrial businesses, by industry experts
+              Built for industrial businesses, by industrial experts
             </p>
           </div>
           
