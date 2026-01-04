@@ -127,7 +127,7 @@ const Dashboard = () => {
                Welcome back, {userData.companyName || "User"}! 👋
               </h1>
               <p className="text-muted-foreground">
-                Here's what's happening in the chemical market today
+                Here is what's happening in the chemical market today
               </p>
             </div>
             {!profileComplete && (
