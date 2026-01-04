@@ -124,7 +124,7 @@ const Dashboard = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">
-                Welcome back, {userData.companyName || "User"}! 👋
+               Welcome back, {userData.companyName || "User"}! 👋
               </h1>
               <p className="text-muted-foreground">
                 Here's what's happening in the chemical market today
