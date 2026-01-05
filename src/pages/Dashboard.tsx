@@ -17,48 +17,63 @@ import {
   ArrowUpRight,
   BadgeCheck,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Profile {
+  company_name: string;
+  email: string;
+  profile_complete: boolean;
+  is_verified: boolean;
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState<{
-    companyName?: string;
-    email?: string;
-  }>({});
-  const [profileComplete, setProfileComplete] = useState(false);
+  const { user, signOut, loading: authLoading } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn) {
+    if (!authLoading && !user) {
       navigate("/login");
       return;
     }
 
-    const signupData = localStorage.getItem("signupData");
-    if (signupData) {
-      setUserData(JSON.parse(signupData));
+    if (user) {
+      fetchProfile();
     }
+  }, [user, authLoading, navigate]);
 
-    const profileStatus = localStorage.getItem("profileComplete");
-    setProfileComplete(profileStatus === "true");
-  }, [navigate]);
+  const fetchProfile = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("signupData");
-    localStorage.removeItem("profileData");
-    localStorage.removeItem("profileComplete");
+    if (!error && data) {
+      setProfile(data);
+    }
+    setLoading(false);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 
   // Sample market data
   const marketRates = [
-    { name: "Sulfuric Acid", price: "₹12,500", unit: "/MT", change: "+2.3%", trending: "up" },
-    { name: "Sodium Hydroxide", price: "₹38,200", unit: "/MT", change: "-1.1%", trending: "down" },
-    { name: "Hydrochloric Acid", price: "₹8,750", unit: "/MT", change: "+0.8%", trending: "up" },
-    { name: "Ethanol", price: "₹56,400", unit: "/KL", change: "+3.5%", trending: "up" },
-    { name: "Methanol", price: "₹28,900", unit: "/KL", change: "-0.5%", trending: "down" },
+    { name: "Sulfuric Acid", price: "₹12,500", unit: "/MT", change: "+2.3%", trending: "up", lastPrice: "₹12,200" },
+    { name: "Sodium Hydroxide", price: "₹38,200", unit: "/MT", change: "-1.1%", trending: "down", lastPrice: "₹38,620" },
+    { name: "Hydrochloric Acid", price: "₹8,750", unit: "/MT", change: "+0.8%", trending: "up", lastPrice: "₹8,680" },
+    { name: "Ethanol", price: "₹56,400", unit: "/KL", change: "+3.5%", trending: "up", lastPrice: "₹54,500" },
+    { name: "Methanol", price: "₹28,900", unit: "/KL", change: "-0.5%", trending: "down", lastPrice: "₹29,050" },
   ];
 
   const recentActivity = [
@@ -69,22 +84,33 @@ const Dashboard = () => {
 
   const stats = [
     { title: "Active Listings", value: "24", icon: Package, color: "bg-primary" },
-    { title: "Total Inquiries", value: "156", icon: Users, color: "bg-accent" },
-    { title: "This Month Revenue", value: "₹12.4L", icon: TrendingUp, color: "bg-green-500" },
+    { title: "Total Inquiries", value: "156", icon: Users, color: "bg-green-500" },
+    { title: "This Month Revenue", value: "₹12.4L", icon: TrendingUp, color: "cyber-gradient" },
   ];
 
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center dark">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border">
+      <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 industrial-gradient rounded-lg flex items-center justify-center">
+              <div className="w-9 h-9 cyber-gradient rounded-lg flex items-center justify-center shadow-cyber">
                 <Factory className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className="font-display font-bold text-lg text-foreground">
-                ChemTrade<span className="text-accent">Hub</span>
+                ChemTrade<span className="text-primary">Hub</span>
               </span>
             </Link>
 
@@ -94,7 +120,7 @@ const Dashboard = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search chemicals, suppliers..."
-                  className="pl-10 h-10 bg-secondary border-0"
+                  className="pl-10 h-10 bg-muted cyber-border"
                 />
               </div>
             </div>
@@ -103,12 +129,12 @@ const Dashboard = () => {
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
               </Button>
               <Button variant="ghost" size="icon">
                 <Settings className="w-5 h-5" />
               </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
+              <Button variant="outline" size="sm" onClick={handleLogout} className="cyber-border">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </Button>
@@ -124,15 +150,15 @@ const Dashboard = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">
-               Welcome back, {userData.companyName || "User"}! 👋
+                Welcome back, <span className="text-primary">{profile?.company_name || user?.email}</span> 👋
               </h1>
-              <p className="text-muted-foreground">
-                Here is what's happening in the chemical market today
+              <p className="text-muted-foreground font-mono text-sm">
+                Here's what's happening in the chemical market today
               </p>
             </div>
-            {!profileComplete && (
+            {!profile?.profile_complete && (
               <Link to="/build-profile">
-                <Button variant="accent">
+                <Button className="shadow-cyber animate-pulse-glow">
                   Complete Your Profile
                   <ArrowUpRight className="w-4 h-4" />
                 </Button>
@@ -142,11 +168,11 @@ const Dashboard = () => {
         </div>
 
         {/* Profile Incomplete Alert */}
-        {!profileComplete && (
-          <Card className="mb-6 border-accent/30 bg-accent/5">
+        {!profile?.profile_complete && (
+          <Card className="mb-6 border-primary/30 bg-primary/5 cyber-border">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-accent" />
+              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground">Complete your profile to get verified</h3>
@@ -155,7 +181,7 @@ const Dashboard = () => {
                 </p>
               </div>
               <Link to="/build-profile">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="cyber-border">
                   Complete Now
                 </Button>
               </Link>
@@ -166,15 +192,15 @@ const Dashboard = () => {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {stats.map((stat, index) => (
-            <Card key={index} className="border-border shadow-card">
+            <Card key={index} className="cyber-border bg-card shadow-card hover:shadow-cyber transition-all">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-muted-foreground text-sm font-medium">{stat.title}</p>
+                    <p className="text-muted-foreground text-sm font-medium font-mono">{stat.title}</p>
                     <p className="font-display text-3xl font-bold text-foreground mt-1">{stat.value}</p>
                   </div>
-                  <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center`}>
-                    <stat.icon className="w-6 h-6 text-white" />
+                  <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center shadow-cyber`}>
+                    <stat.icon className="w-6 h-6 text-primary-foreground" />
                   </div>
                 </div>
               </CardContent>
@@ -184,14 +210,14 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Market Rates */}
-          <Card className="lg:col-span-2 border-border shadow-card">
+          <Card className="lg:col-span-2 cyber-border bg-card shadow-card">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="font-display text-lg flex items-center gap-2">
                   <FlaskConical className="w-5 h-5 text-primary" />
                   Live Market Rates
                 </CardTitle>
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs font-mono">
                   Updated 5 min ago
                 </Badge>
               </div>
@@ -201,15 +227,15 @@ const Dashboard = () => {
                 {marketRates.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors"
+                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cyber-border"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 industrial-gradient rounded-lg flex items-center justify-center">
+                      <div className="w-10 h-10 cyber-gradient rounded-lg flex items-center justify-center shadow-cyber">
                         <FlaskConical className="w-5 h-5 text-primary-foreground" />
                       </div>
                       <div>
                         <p className="font-semibold text-foreground">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">Industrial Grade</p>
+                        <p className="text-xs text-muted-foreground font-mono">Industrial Grade</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -217,18 +243,21 @@ const Dashboard = () => {
                         {item.price}
                         <span className="text-xs font-normal text-muted-foreground">{item.unit}</span>
                       </p>
-                      <p
-                        className={`text-sm font-medium flex items-center justify-end gap-1 ${
-                          item.trending === "up" ? "text-green-600" : "text-red-500"
-                        }`}
-                      >
-                        {item.trending === "up" ? (
-                          <TrendingUp className="w-3 h-3" />
-                        ) : (
-                          <TrendingDown className="w-3 h-3" />
-                        )}
-                        {item.change}
-                      </p>
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-xs text-muted-foreground line-through">{item.lastPrice}</span>
+                        <span
+                          className={`text-sm font-medium flex items-center gap-1 ${
+                            item.trending === "up" ? "text-green-400" : "text-red-400"
+                          }`}
+                        >
+                          {item.trending === "up" ? (
+                            <TrendingUp className="w-3 h-3" />
+                          ) : (
+                            <TrendingDown className="w-3 h-3" />
+                          )}
+                          {item.change}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -237,7 +266,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Recent Activity */}
-          <Card className="border-border shadow-card">
+          <Card className="cyber-border bg-card shadow-card">
             <CardHeader className="pb-4">
               <CardTitle className="font-display text-lg flex items-center gap-2">
                 <Bell className="w-5 h-5 text-primary" />
@@ -251,15 +280,15 @@ const Dashboard = () => {
                     <div
                       className={`w-2 h-2 rounded-full mt-2 ${
                         activity.type === "inquiry"
-                          ? "bg-accent"
+                          ? "bg-primary animate-pulse"
                           : activity.type === "price"
-                          ? "bg-primary"
-                          : "bg-green-500"
+                          ? "bg-yellow-400"
+                          : "bg-green-400"
                       }`}
                     />
                     <div>
                       <p className="text-sm text-foreground">{activity.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
+                      <p className="text-xs text-muted-foreground mt-1 font-mono">{activity.time}</p>
                     </div>
                   </div>
                 ))}
@@ -274,11 +303,11 @@ const Dashboard = () => {
         </div>
 
         {/* Verified Badge Section */}
-        {profileComplete && (
-          <Card className="mt-6 industrial-gradient border-0">
+        {profile?.is_verified && (
+          <Card className="mt-6 cyber-gradient cyber-border">
             <CardContent className="p-6 flex items-center gap-4">
-              <div className="w-14 h-14 bg-primary-foreground/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <BadgeCheck className="w-7 h-7 text-accent" />
+              <div className="w-14 h-14 bg-background/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-primary-foreground/20 shadow-cyber">
+                <BadgeCheck className="w-7 h-7 text-primary-foreground" />
               </div>
               <div>
                 <h3 className="font-display font-bold text-lg text-primary-foreground">
