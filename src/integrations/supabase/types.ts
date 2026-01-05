@@ -14,7 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          cas_number: string | null
+          category: string
+          created_at: string
+          current_price: number
+          description: string | null
+          id: string
+          is_active: boolean | null
+          last_price: number | null
+          min_order_quantity: number | null
+          name: string
+          price_unit: string | null
+          profile_id: string
+          purity: string | null
+          stock_available: number | null
+          updated_at: string
+        }
+        Insert: {
+          cas_number?: string | null
+          category: string
+          created_at?: string
+          current_price: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_price?: number | null
+          min_order_quantity?: number | null
+          name: string
+          price_unit?: string | null
+          profile_id: string
+          purity?: string | null
+          stock_available?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cas_number?: string | null
+          category?: string
+          created_at?: string
+          current_price?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_price?: number | null
+          min_order_quantity?: number | null
+          name?: string
+          price_unit?: string | null
+          profile_id?: string
+          purity?: string | null
+          stock_available?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          chemicals_to_buy: string[] | null
+          chemicals_to_sell: string[] | null
+          company_name: string
+          created_at: string
+          email: string
+          factory_license: string | null
+          gst_number: string | null
+          id: string
+          is_verified: boolean | null
+          profile_complete: boolean | null
+          trade_license: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chemicals_to_buy?: string[] | null
+          chemicals_to_sell?: string[] | null
+          company_name: string
+          created_at?: string
+          email: string
+          factory_license?: string | null
+          gst_number?: string | null
+          id?: string
+          is_verified?: boolean | null
+          profile_complete?: boolean | null
+          trade_license?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chemicals_to_buy?: string[] | null
+          chemicals_to_sell?: string[] | null
+          company_name?: string
+          created_at?: string
+          email?: string
+          factory_license?: string | null
+          gst_number?: string | null
+          id?: string
+          is_verified?: boolean | null
+          profile_complete?: boolean | null
+          trade_license?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
